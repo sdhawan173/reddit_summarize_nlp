@@ -5,7 +5,6 @@ import pickle
 import praw
 import pprint
 from dataset_links import askreddit
-from dataset_links import askhistorians
 from dataset_links import science
 
 
@@ -47,18 +46,40 @@ def load_reddit_post(post_url):
     return post
 
 
-def get_replies(comment_list, selection=None, iter_list=None):
-    if iter_list is None:
-        iter_list = selection.replies
-    for selected_comment in iter_list:
-        if selected_comment.body != '[removed]' and selected_comment.author != 'AutoModerator':
-            comment_list.append([selected_comment.score, selected_comment.id, 'selected_comment.body'])
-
-            if selected_comment.replies:
-                sub_sub_comment_list = []
-                get_replies(sub_sub_comment_list, selection=selected_comment)
-                comment_list.append(sub_sub_comment_list)
+def get_main_comments(post):
+    comment_list = []
+    for comment in post.comments:
+        if (
+                comment.body != '[removed]' and
+                comment.author != 'AutoModerator' and
+                comment.score >= 5
+        ):
+            comment_list.append(
+                [
+                    comment.score,
+                    comment.id,
+                    comment.body[0:15] + ' ...',
+                ]
+            )
+            get_replies(comment, comment_list)
     return comment_list
+
+
+def get_replies(comment, comment_list):
+    if comment.replies:
+        for comment in comment.replies:
+            if (
+                    comment.body != '[removed]' and
+                    comment.author != 'AutoModerator'
+            ):
+                comment_list[-1].append(
+                    [
+                        comment.score,
+                        comment.id,
+                        comment.body[0:15] + ' ...'
+                    ]
+                )
+                get_replies(comment, comment_list[-1])
 
 
 def create_dataset(post_url):
@@ -80,17 +101,16 @@ def create_dataset(post_url):
         print('Saving data to \'.pkl\' file ...')
         with open(post_id + '.pkl', 'wb') as file:
             pickle.dump(post, file)
-    comment_list = []
     print('Forming comment list ...')
     start = time.time()
-    comment_list = get_replies(comment_list, iter_list=post.comments)
+    comment_list = get_main_comments(post)
     end = time.time()
     runtime = end - start
     print('Time to form comment list = {} minutes, {} seconds'.format(int(runtime // 60), round(runtime % 60, 3)))
     return post, comment_list
 
 
-def parse_comment_structure(thread, space='|', comment_level = 1, verbose=None):
+def parse_comment_structure(thread, space='|', comment_level=1, verbose=None):
     if isinstance(thread, list):
         for index, item in enumerate(thread):
             if not isinstance(item, list):
@@ -100,10 +120,10 @@ def parse_comment_structure(thread, space='|', comment_level = 1, verbose=None):
                 if verbose:
                     print('')
                     print(space + ' {}: '.format(comment_level), end='')
-                parse_comment_structure(item, space=space + '|', comment_level=len(space)+1, verbose=verbose)
+                parse_comment_structure(item, space=space + '|', comment_level=len(space) + 1, verbose=verbose)
 
 
-reddit_post, comment_thread = create_dataset(science[1])
+reddit_post, comment_thread = create_dataset()
 parse_comment_structure(comment_thread, verbose=True)
 # pprint.pprint(vars(reddit_post))
 # create_dataset(science[3])
