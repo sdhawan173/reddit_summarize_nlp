@@ -53,6 +53,7 @@ def get_replies(comment_list, selection=None, iter_list=None):
     for selected_comment in iter_list:
         if selected_comment.body != '[removed]' and selected_comment.author != 'AutoModerator':
             comment_list.append([selected_comment.score, selected_comment.id, 'selected_comment.body'])
+
             if selected_comment.replies:
                 sub_sub_comment_list = []
                 get_replies(sub_sub_comment_list, selection=selected_comment)
@@ -89,22 +90,17 @@ def create_dataset(post_url):
     return post, comment_list
 
 
-def parse_comment_structure(thread, space='|', verbose=None):
+def parse_comment_structure(thread, space='|', comment_level = 1, verbose=None):
     if isinstance(thread, list):
-        print_count = 0
         for index, item in enumerate(thread):
             if not isinstance(item, list):
-                if print_count == 2:
-                    if verbose:
-                        print(str(item))
-                else:
-                    print_count += 1
-                    if verbose:
-                        print(str(item) + ', ', end='')
+                if verbose:
+                    print(str(item) + ', ', end='')
             elif isinstance(item, list):
                 if verbose:
-                    print(space, end='')
-                parse_comment_structure(item, space=space + '|', verbose=verbose)
+                    print('')
+                    print(space + ' {}: '.format(comment_level), end='')
+                parse_comment_structure(item, space=space + '|', comment_level=len(space)+1, verbose=verbose)
 
 
 reddit_post, comment_thread = create_dataset(science[1])
