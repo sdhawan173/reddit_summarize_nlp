@@ -1,4 +1,7 @@
 import os
+import time
+from tqdm import tqdm
+import pickle
 import praw
 import pprint
 from dataset_links import askreddit
@@ -30,54 +33,81 @@ def get_moderators(subreddit_name):
     return REDDIT.subreddit(subreddit_name).moderator()
 
 
-def load_reddit_post(url_string):
-    return REDDIT.submission(url=url_string)
-
-
-def get_replies(selection, sub_comment_list, verbose=None):
-    for selected_comment in selection.replies:
-        if selected_comment.body != '[removed]' and selected_comment.author != 'AutoModerator':
-            sub_comment_list.append([selected_comment.score, selected_comment.id, 'selected_comment.body'])
-            if verbose:
-                print(str(sub_comment_list[-1][0]) + ', ' + sub_comment_list[-1][1][0:20] + ' ... ')
-            if selected_comment.replies:
-                sub_sub_comment_list = []
-                get_replies(selected_comment, sub_sub_comment_list, verbose=verbose)
-                sub_comment_list.append(sub_sub_comment_list)
-    return sub_comment_list
-
-
-def create_dataset(post_url, verbose=None):
-    print('Loading data from URL')
+def load_reddit_post(post_url):
+    print('Loading data from URL ...')
     post = REDDIT.submission(url=post_url)
+    print('Sorting data by \'top\' ...')
     post.comment_sort = "top"
+    start = time.time()
+    print('Loading full data ...')
     post.comments.replace_more(limit=None)
-    comment_list = []
-    for selected_comment in post.comments:
+    end = time.time()
+    runtime = end - start
+    print('Time to load full data = {} minutes, {} seconds'.format(int(runtime // 60), round(runtime % 60, 3)))
+    return post
+
+
+def get_replies(comment_list, selection=None, iter_list=None):
+    if iter_list is None:
+        iter_list = selection.replies
+    for selected_comment in iter_list:
         if selected_comment.body != '[removed]' and selected_comment.author != 'AutoModerator':
             comment_list.append([selected_comment.score, selected_comment.id, 'selected_comment.body'])
-            if verbose:
-                print('-----New Main Comment')
-                print(str(comment_list[-1][0]) + ', ' + comment_list[-1][1][0:20] + ' ... ')
             if selected_comment.replies:
-                sub_comment_list = []
-                get_replies(selected_comment, sub_comment_list, verbose=verbose)
-                comment_list[-1].append(sub_comment_list)
+                sub_sub_comment_list = []
+                get_replies(sub_sub_comment_list, selection=selected_comment)
+                comment_list.append(sub_sub_comment_list)
+    return comment_list
+
+
+def create_dataset(post_url):
+    print('Selected post URL: {}'.format(post_url))
+    post_id = post_url.split('comments/')[-1].split('/')[0]
+    pkl_exists = False
+    post = None
+    print('Searching for existing \'.pkl\' file of post data ... ')
+    for list_item in os.listdir(os.getcwd()):
+        if list_item == post_id + '.pkl':
+            pkl_exists = True
+    if pkl_exists:
+        print('\'.pkl\' file found! :D')
+        with open(post_id + '.pkl', 'rb') as file:
+            post = pickle.load(file)
+    elif not pkl_exists:
+        print('\'.pkl\' file not found :(')
+        post = load_reddit_post(post_url)
+        print('Saving data to \'.pkl\' file ...')
+        with open(post_id + '.pkl', 'wb') as file:
+            pickle.dump(post, file)
+    comment_list = []
+    print('Forming comment list ...')
+    start = time.time()
+    comment_list = get_replies(comment_list, iter_list=post.comments)
+    end = time.time()
+    runtime = end - start
+    print('Time to form comment list = {} minutes, {} seconds'.format(int(runtime // 60), round(runtime % 60, 3)))
     return post, comment_list
 
 
-def check_comment_structure(thread, space=' '):
-    print('')
+def parse_comment_structure(thread, space='|', verbose=None):
     if isinstance(thread, list):
-        print(space, end='')
-        for item in thread:
+        print_count = 0
+        for index, item in enumerate(thread):
             if not isinstance(item, list):
-                print(str(item) + ', ', end='')
+                if print_count == 2:
+                    if verbose:
+                        print(str(item))
+                else:
+                    print_count += 1
+                    if verbose:
+                        print(str(item) + ', ', end='')
             elif isinstance(item, list):
-                check_comment_structure(item, space=space + ' ')
+                if verbose:
+                    print(space, end='')
+                parse_comment_structure(item, space=space + '|', verbose=verbose)
 
 
-reddit_post, comment_thread = create_dataset(askhistorians[1], verbose=False)
-check_comment_structure(comment_thread)
+reddit_post, comment_thread = create_dataset(science[1])
+parse_comment_structure(comment_thread, verbose=True)
 # pprint.pprint(vars(reddit_post))
 # create_dataset(science[3])
