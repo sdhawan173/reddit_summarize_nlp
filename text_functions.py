@@ -17,7 +17,7 @@ from gensim.models import Word2Vec
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import sklearn.model_selection as sklms
-import tensorflow as tf
+# import tensorflow as tf
 import text_file_operations as tfo
 
 try:
@@ -39,49 +39,49 @@ STOP_WORDS.add('\'s')
 STOP_WORDS.add('\'m')
 STOP_WORDS.add('\'ll')
 STOP_WORDS.add('\'ve')
-STOP_WORDS.add('like')
-STOP_WORDS.add('good')
-STOP_WORDS.add('also')
-STOP_WORDS.add('every')
+STOP_WORDS.add('\'re')
+STOP_WORDS.add('\'d')
 
-PUNCTUATION = set(string.punctuation)
-PUNCTUATION.add('â–')
-PUNCTUATION.add('br')
-PUNCTUATION.add('<br>')
-PUNCTUATION.add('<\\br>')
-PUNCTUATION.add('``')
-PUNCTUATION.add('/')
-PUNCTUATION.add('\'\'')
-PUNCTUATION.add('\"')
-PUNCTUATION.add('..')
-PUNCTUATION.add('...')
-PUNCTUATION.add('....')
-PUNCTUATION.add('.....')
-PUNCTUATION.add('......')
-PUNCTUATION.add('.......')
-PUNCTUATION.add('........')
-PUNCTUATION.add('.........')
-PUNCTUATION.add('..........')
-PUNCTUATION.add('...........')
-PUNCTUATION.add('............')
-PUNCTUATION.add('.............')
-PUNCTUATION.add('..............')
-
+PUNCTUATION = list(set(string.punctuation))
+PUNCTUATION.append('â–')
+PUNCTUATION.append('br')
+PUNCTUATION.append('<br>')
+PUNCTUATION.append('<\\br>')
+PUNCTUATION.append('’')
+PUNCTUATION.append('”')
+PUNCTUATION.append('“')
+PUNCTUATION.append('``')
+PUNCTUATION.append('/')
+PUNCTUATION.append('\'\'')
+PUNCTUATION.append('\"')
+PUNCTUATION.append('..')
+PUNCTUATION.append('...')
+PUNCTUATION.append('....')
+PUNCTUATION.append('.....')
+PUNCTUATION.append('......')
+PUNCTUATION.append('.......')
+PUNCTUATION.append('........')
+PUNCTUATION.append('.........')
+PUNCTUATION.append('..........')
+PUNCTUATION.append('...........')
+PUNCTUATION.append('............')
+PUNCTUATION.append('.............')
+PUNCTUATION.append('..............')
 PWD = os.getcwd()
 
+POST_DICT = {}
+WORD_FREQ = {}
 
-def split_sentence(text_data):
+
+def split_sentence(comment_body):
     """
-    Splits each comment from list of comments into sentences
-    :param text_data: list of comments
-    :return: list of lists of comments split into sentences
+    Splits comments into sentences
+    :param comment_body: individual comment from reddit
+    :return: comments split into sentences
     """
     # Make sure 'punkt' is installed
-    print('\nSplitting {} comments by sentences ...'.format(len(text_data)))
-    text_split_sentence = text_data
-    for index in range(len(text_data)):
-        text_split_sentence[index] = nltk.sent_tokenize(text_data[index][0])
-    return text_split_sentence
+    split_comment = nltk.sent_tokenize(comment_body)
+    return split_comment
 
 
 def replace_multiwords(word_list):
@@ -135,29 +135,26 @@ def exclusion_filter(word_list):
     return exclusion_list
 
 
-def split_words(text_data, exclusion=True):
+def split_words(sentence):
     """
     Splits each comment from list of comments into words
-    :param text_data: list of comments
-    :param exclusion: Boolean to exclude STOP_WORDS and PUNCTUATION
+    :param sentence: sentence string (punctuation not necessary)
     :return: list of lists of comments split into words
     """
-    print('Splitting {} comments by words ...'.format(len(text_data)))
-    if exclusion:
-        print('Excluding stop words and punctuation ...')
-    text_split_word = []
-    for comment in text_data:
-        comment_words = []
-        temp = []
-        for sentence in comment:
-            if not exclusion:
-                temp = nltk.word_tokenize(sentence)
-            elif exclusion:
-                temp = exclusion_filter(nltk.word_tokenize(sentence))
-            for word in temp:
-                comment_words.append(word.lower())
-        text_split_word.append(comment_words)
-    return text_split_word
+    processed_words = []
+    text_split_word = nltk.word_tokenize(sentence)
+    stemmer = nltk.PorterStemmer()
+    for word in text_split_word:
+        word_lower = word.lower()
+        if word_lower not in PUNCTUATION and word_lower not in STOP_WORDS:
+            lemmatized_word = stemmer.stem(word_lower)
+            processed_words.append(lemmatized_word)
+            if lemmatized_word not in POST_DICT.keys():
+                POST_DICT.update({lemmatized_word: word_lower})
+                WORD_FREQ.update({lemmatized_word: 1})
+            elif lemmatized_word in POST_DICT.keys():
+                WORD_FREQ[lemmatized_word] = WORD_FREQ.get(lemmatized_word) + 1
+    return processed_words
 
 
 def lemmatization(text_split_sentence, exclusion=False, multiword=False):
@@ -410,96 +407,96 @@ def nn_eval(true_positive, false_positive, false_negative, true_negative, verbos
     return accuracy, precision, recall, f1
 
 
-def word2vec_nn(data, data_labels, word2vec_model, verbose_boolean=False):
-    if verbose_boolean:
-        print('Running word2vec Neural Network ...')
-        print('     Aggregating word embeddings ...')
-    comment_embedding_data, data_labels = comment_embeddings(data, data_labels, word2vec_model)
-    if verbose_boolean:
-        print('     Creating training, validation, and testing data and labels ...')
-    training_data, testing_data, training_labels, testing_labels = (
-        sklms.train_test_split(
-            comment_embedding_data,
-            data_labels,
-            test_size=0.2,
-            stratify=data_labels,
-            random_state=666
-        )
-    )
-    validation_data, testing_data = sklms.train_test_split(
-        testing_data,
-        test_size=0.5,
-        random_state=666
-    )
-    validation_labels, testing_labels = sklms.train_test_split(
-        testing_labels,
-        test_size=0.5,
-        random_state=666
-    )
-    if verbose_boolean:
-        print('     Building neural network ...')
-    neural_network = tf.keras.Sequential([
-        tf.keras.layers.Dense(
-            units=10,
-            activation='relu'
-        ),
-        tf.keras.layers.Dense(
-            units=1,
-            activation='sigmoid'
-        )
-    ])
-    print('     Compiling neural network ...')
-    neural_network.compile(
-        optimizer='adam',
-        loss='binary_crossentropy',
-        metrics=['accuracy']
-    )
-    if verbose_boolean:
-        print('     Running neural network ...')
-    neural_network.fit(
-        training_data,
-        training_labels,
-        validation_data=(
-            validation_data,
-            validation_labels
-        ),
-        epochs=10,
-        batch_size=32,
-        verbose=0
-    )
-    if verbose_boolean:
-        print('     Evaluating neural network ...')
-    testing_predictions = neural_network.predict(testing_data)
-    tp, fp, fn, tn = tf_pos_neg(testing_predictions, testing_labels)
-    accuracy, precision, recall, f1 = nn_eval(tp, fp, fn, tn, verbose_boolean=verbose_boolean)
-    return accuracy, precision, recall, f1
-
-
-def w2v_nn_testing(data, data_labels, max_vector_size, verbose_boolean=False):
-    print('Running Neural Network for vector sizes from 1 to {}'.format(max_vector_size))
-    size_list = [i + 1 for i in range(max_vector_size)]
-    accuracy_list = []
-    precision_list = []
-    recall_list = []
-    f1_list = []
-    for vector_size in size_list:
-        print('Current vector size =', vector_size)
-        word2vec_testing = word2vec_cbow(data, vector_size=vector_size, window=5, min_count=1, verbose=False)
-        accuracy, precision, recall, f1 = word2vec_nn(data, data_labels, word2vec_testing, verbose_boolean=False)
-        accuracy_list.append(100*accuracy)
-        precision_list.append(100*precision)
-        recall_list.append(100*recall)
-        f1_list.append(100*f1)
-    fig, ax = plt.subplots()
-    ax.plot(size_list, accuracy_list, marker='o', label='Accuracy', zorder=4)
-    ax.plot(size_list, precision_list, marker='o', label='Precision', zorder=3)
-    ax.plot(size_list, recall_list, marker='o', label='Recall', zorder=2)
-    ax.plot(size_list, f1_list, marker='o', label='F1 Score', zorder=1)
-    plt.xlabel('Vector Size')
-    plt.ylabel('Percentage')
-    plt.title('Word2Vec Metrics vs. Vector Size')
-    plt.legend()
-    plt.show()
-    fig.savefig(PWD + '/CSC 693 Assignment 2 Writeup/w2v_nn_vector_size_plot.png')
-    plt.clf()
-    plt.close()
+# def word2vec_nn(data, data_labels, word2vec_model, verbose_boolean=False):
+#     if verbose_boolean:
+#         print('Running word2vec Neural Network ...')
+#         print('     Aggregating word embeddings ...')
+#     comment_embedding_data, data_labels = comment_embeddings(data, data_labels, word2vec_model)
+#     if verbose_boolean:
+#         print('     Creating training, validation, and testing data and labels ...')
+#     training_data, testing_data, training_labels, testing_labels = (
+#         sklms.train_test_split(
+#             comment_embedding_data,
+#             data_labels,
+#             test_size=0.2,
+#             stratify=data_labels,
+#             random_state=666
+#         )
+#     )
+#     validation_data, testing_data = sklms.train_test_split(
+#         testing_data,
+#         test_size=0.5,
+#         random_state=666
+#     )
+#     validation_labels, testing_labels = sklms.train_test_split(
+#         testing_labels,
+#         test_size=0.5,
+#         random_state=666
+#     )
+#     if verbose_boolean:
+#         print('     Building neural network ...')
+#     neural_network = tf.keras.Sequential([
+#         tf.keras.layers.Dense(
+#             units=10,
+#             activation='relu'
+#         ),
+#         tf.keras.layers.Dense(
+#             units=1,
+#             activation='sigmoid'
+#         )
+#     ])
+#     print('     Compiling neural network ...')
+#     neural_network.compile(
+#         optimizer='adam',
+#         loss='binary_crossentropy',
+#         metrics=['accuracy']
+#     )
+#     if verbose_boolean:
+#         print('     Running neural network ...')
+#     neural_network.fit(
+#         training_data,
+#         training_labels,
+#         validation_data=(
+#             validation_data,
+#             validation_labels
+#         ),
+#         epochs=10,
+#         batch_size=32,
+#         verbose=0
+#     )
+#     if verbose_boolean:
+#         print('     Evaluating neural network ...')
+#     testing_predictions = neural_network.predict(testing_data)
+#     tp, fp, fn, tn = tf_pos_neg(testing_predictions, testing_labels)
+#     accuracy, precision, recall, f1 = nn_eval(tp, fp, fn, tn, verbose_boolean=verbose_boolean)
+#     return accuracy, precision, recall, f1
+#
+#
+# def w2v_nn_testing(data, data_labels, max_vector_size):
+#     print('Running Neural Network for vector sizes from 1 to {}'.format(max_vector_size))
+#     size_list = [i + 1 for i in range(max_vector_size)]
+#     accuracy_list = []
+#     precision_list = []
+#     recall_list = []
+#     f1_list = []
+#     for vector_size in size_list:
+#         print('Current vector size =', vector_size)
+#         word2vec_testing = word2vec_cbow(data, vector_size=vector_size, window=5, min_count=1, verbose=False)
+#         accuracy, precision, recall, f1 = word2vec_nn(data, data_labels, word2vec_testing, verbose_boolean=False)
+#         accuracy_list.append(100*accuracy)
+#         precision_list.append(100*precision)
+#         recall_list.append(100*recall)
+#         f1_list.append(100*f1)
+#     fig, ax = plt.subplots()
+#     ax.plot(size_list, accuracy_list, marker='o', label='Accuracy', zorder=4)
+#     ax.plot(size_list, precision_list, marker='o', label='Precision', zorder=3)
+#     ax.plot(size_list, recall_list, marker='o', label='Recall', zorder=2)
+#     ax.plot(size_list, f1_list, marker='o', label='F1 Score', zorder=1)
+#     plt.xlabel('Vector Size')
+#     plt.ylabel('Percentage')
+#     plt.title('Word2Vec Metrics vs. Vector Size')
+#     plt.legend()
+#     plt.show()
+#     fig.savefig(PWD + '/CSC 693 Assignment 2 Writeup/w2v_nn_vector_size_plot.png')
+#     plt.clf()
+#     plt.close()
