@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b394f611-0d5a-4f2b-ae36-cf3ee96f7c8d" name="Changes" comment="perfect thread loading code">
-      <change afterPath="$PROJECT_DIR$/b6hy7e.pkl" afterDir="false" />
+    <list default="true" id="b394f611-0d5a-4f2b-ae36-cf3ee96f7c8d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/praw_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forum_summarize.py" beforeDir="false" afterPath="$PROJECT_DIR$/forum_summarize.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/text_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/text_functions.py" afterDir="false" />
@@ -138,7 +138,15 @@
       <option name="project" value="LOCAL" />
       <updated>1712121769043</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added dictionaries, improved comment structure building code">
+      <option name="closed" value="true" />
+      <created>1712713119788</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1712713119788</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -148,6 +156,7 @@
     <MESSAGE value="Better comment load-in and structure debugging with print statements" />
     <MESSAGE value="current working version" />
     <MESSAGE value="perfect thread loading code" />
-    <option name="LAST_COMMIT_MESSAGE" value="perfect thread loading code" />
+    <MESSAGE value="added dictionaries, improved comment structure building code" />
+    <option name="LAST_COMMIT_MESSAGE" value="added dictionaries, improved comment structure building code" />
   </component>
 </project>

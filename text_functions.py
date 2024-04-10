@@ -16,7 +16,7 @@ from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-import sklearn.model_selection as sklms
+# import sklearn.model_selection as sklms
 # import tensorflow as tf
 import text_file_operations as tfo
 
@@ -54,23 +54,36 @@ PUNCTUATION.append('``')
 PUNCTUATION.append('/')
 PUNCTUATION.append('\'\'')
 PUNCTUATION.append('\"')
+PUNCTUATION.append('\n')
 PUNCTUATION.append('..')
 PUNCTUATION.append('...')
-PUNCTUATION.append('....')
-PUNCTUATION.append('.....')
-PUNCTUATION.append('......')
-PUNCTUATION.append('.......')
-PUNCTUATION.append('........')
-PUNCTUATION.append('.........')
-PUNCTUATION.append('..........')
-PUNCTUATION.append('...........')
-PUNCTUATION.append('............')
-PUNCTUATION.append('.............')
-PUNCTUATION.append('..............')
 PWD = os.getcwd()
 
 POST_DICT = {}
 WORD_FREQ = {}
+COMMENT_LIST_DICT = {}
+
+
+def split_words(sentence):
+    """
+    Splits each comment from list of comments into words
+    :param sentence: sentence string (punctuation not necessary)
+    :return: list of lists of comments split into words
+    """
+    processed_words = []
+    text_split_word = nltk.word_tokenize(sentence)
+    stemmer = nltk.PorterStemmer()
+    for word in text_split_word:
+        word_lower = word.lower()
+        if word_lower not in PUNCTUATION and word_lower not in STOP_WORDS:
+            lemmatized_word = stemmer.stem(word_lower)
+            processed_words.append(lemmatized_word)
+            if lemmatized_word not in POST_DICT.keys():
+                POST_DICT.update({lemmatized_word: word_lower})
+                WORD_FREQ.update({lemmatized_word: 1})
+            elif lemmatized_word in POST_DICT.keys():
+                WORD_FREQ[lemmatized_word] = WORD_FREQ.get(lemmatized_word) + 1
+    return processed_words
 
 
 def split_sentence(comment_body):
@@ -82,6 +95,16 @@ def split_sentence(comment_body):
     # Make sure 'punkt' is installed
     split_comment = nltk.sent_tokenize(comment_body)
     return split_comment
+
+
+def preprocess(comment):
+    comment_body = comment.body
+    split_comment = []
+    comment_sentence_split = split_sentence(comment_body)
+    for sentence in comment_sentence_split:
+        sentence_split_words = split_words(sentence)
+        split_comment.append(sentence_split_words)
+    COMMENT_LIST_DICT.update({comment.id: split_comment})
 
 
 def replace_multiwords(word_list):
@@ -133,28 +156,6 @@ def exclusion_filter(word_list):
                     exclusion_list.insert(word_index + insert_count, item)
                     insert_count += 1
     return exclusion_list
-
-
-def split_words(sentence):
-    """
-    Splits each comment from list of comments into words
-    :param sentence: sentence string (punctuation not necessary)
-    :return: list of lists of comments split into words
-    """
-    processed_words = []
-    text_split_word = nltk.word_tokenize(sentence)
-    stemmer = nltk.PorterStemmer()
-    for word in text_split_word:
-        word_lower = word.lower()
-        if word_lower not in PUNCTUATION and word_lower not in STOP_WORDS:
-            lemmatized_word = stemmer.stem(word_lower)
-            processed_words.append(lemmatized_word)
-            if lemmatized_word not in POST_DICT.keys():
-                POST_DICT.update({lemmatized_word: word_lower})
-                WORD_FREQ.update({lemmatized_word: 1})
-            elif lemmatized_word in POST_DICT.keys():
-                WORD_FREQ[lemmatized_word] = WORD_FREQ.get(lemmatized_word) + 1
-    return processed_words
 
 
 def lemmatization(text_split_sentence, exclusion=False, multiword=False):
