@@ -115,10 +115,18 @@ def parse_comment_structure(thread, marker='|', comment_level=1, verbose=None):
     if isinstance(thread, list):
         for index, item in enumerate(thread):
             if not isinstance(item, list):
+                if isinstance(item, str):
+                    tfx.COMMENT_DEPTH_DICT.update({item: comment_level})
                 if verbose:
+                    # print items in list (upvotes, then comment id string)
                     print(str(item) + ', ', end='')
             elif isinstance(item, list):
                 if verbose:
+                    # print new line with markers and comment level
                     print('')
                     print(marker + ' {}: '.format(comment_level), end='')
                 parse_comment_structure(item, marker=marker + '|', comment_level=len(marker) + 1, verbose=verbose)
+
+
+def load_comment_from_id(id_string):
+    return REDDIT.comment(id_string)

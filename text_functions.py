@@ -62,6 +62,7 @@ PWD = os.getcwd()
 POST_DICT = {}  # {lemmatized word: original word (1st variation only)}
 WORD_FREQ = {}  # {lemmatized word: lemm. word frequency}
 COMMENT_LIST_DICT = {}  # {comment.id: list preprocessed comment sentences}
+COMMENT_DEPTH_DICT = {}  # {comment.id: depth of comment}
 
 
 def split_words(sentence):
