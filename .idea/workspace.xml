@@ -5,10 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b394f611-0d5a-4f2b-ae36-cf3ee96f7c8d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/8cibi0.pkl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 5.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 7.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, upvotes boxplot.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/word2vec Top 25 Vectors.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/b6hy7e.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/b6hy7e.pkl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dataset_links.py" beforeDir="false" afterPath="$PROJECT_DIR$/dataset_links.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forum_summarize.py" beforeDir="false" afterPath="$PROJECT_DIR$/forum_summarize.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k1ofcu.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/k1ofcu.pkl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/praw_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/praw_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sq551o.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/text_file_operations.py" beforeDir="false" afterPath="$PROJECT_DIR$/text_file_operations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/text_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/text_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/w8l4b8.pkl" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +58,8 @@
   &quot;keyToString&quot;: {
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;Python.forum_summarize.executor&quot;: &quot;Run&quot;,
+    &quot;Python.forum_summarizer_transformer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.praw_functions.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
@@ -162,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1712714709496</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="added comment depth dictionary">
+      <option name="closed" value="true" />
+      <created>1713242966444</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1713242966444</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -175,6 +200,7 @@
     <MESSAGE value="added dictionaries, improved comment structure building code" />
     <MESSAGE value="Separated code into more python files, added dictionary for preprocesssed comment text instead of adding it to list structure" />
     <MESSAGE value="small update to define dictionaries in comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="small update to define dictionaries in comments" />
+    <MESSAGE value="added comment depth dictionary" />
+    <option name="LAST_COMMIT_MESSAGE" value="added comment depth dictionary" />
   </component>
 </project>

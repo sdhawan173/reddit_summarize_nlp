@@ -22,31 +22,6 @@ def file_search(search_term, dir_string=os.getcwd(), match_term=False):
     return sorted(file_list, key=str.casefold)
 
 
-def read_file_list(file_path, name_list, encoding):
-    """
-    reads stl file and stores to array
-    :param file_path: file path of ast or stl file
-    :param name_list: list of file names to be appended to file_path
-    :param encoding: type of encoding to use when opening file
-    """
-    print('Reading {} txt files ...'.format(len(name_list)))
-    text_data = []
-    for name in name_list:
-        read_file = []
-        opened_file = open(file_path + name, 'r', encoding=encoding)
-        for line in opened_file:
-            read_file.append(line)
-        opened_file.close()
-        text_data.append(read_file)
-    return text_data
-
-
-def load_data(src_string, encoding='cp1252'):
-    text_dir = PWD + '/' + src_string + '/'
-    file_names = file_search(search_term='.txt', dir_string=text_dir)
-    return read_file_list(text_dir, file_names, encoding=encoding)
-
-
 def save_data(data_list, dst_string):
     with open(dst_string, 'w') as file:
         for line in data_list:

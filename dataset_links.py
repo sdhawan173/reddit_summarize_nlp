@@ -1,7 +1,6 @@
 askreddit = [
     'askreddit',
     'https://old.reddit.com/r/AskReddit/comments/8cibi0/serious_should_elderly_people_be_forced_to_take/',
-    'https://old.reddit.com/r/AskReddit/comments/dr4tjk/serious_therapists_of_reddit_what_are_some_red/',
     'https://old.reddit.com/r/AskReddit/comments/73e8s1/serious_people_who_check_university_applications/'
 ]
 science = [
