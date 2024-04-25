@@ -1,16 +1,14 @@
 import os
 import string
-import shlex
 import nltk
 import re
 from cleantext import clean
 from nltk.corpus import stopwords
-from nltk.collocations import BigramCollocationFinder
-from nltk.metrics import BigramAssocMeasures
-
 
 POST_DICT = {}  # {lemmatized word: original word (1st variation only)}
-WORD_FREQ = {}  # {lemmatized word: lemm. word frequency}
+FILT_DICT = {}  # same as post dict, but filtered words only
+POST_FREQ = {}  # {lemmatized word: lemm. word frequency}
+FILT_FREQ = {}
 COMMENT_LIST_DICT = {}  # {comment.id: list preprocessed comment sentences}
 COMMENT_UPVOTE_DICT = {}  # {comment.id: comment.score}
 COMMENT_DEPTH_DICT = {}  # {comment.id: depth of comment}
@@ -56,6 +54,8 @@ PUNCTUATION.append('.....')
 PUNCTUATION.append('......')
 PWD = os.getcwd()
 
+STEMMER = nltk.PorterStemmer()
+
 
 def string_list_to_paragraph(transformed_comment, comment_paragraph):
     for sentence_word_list in transformed_comment:
@@ -65,9 +65,15 @@ def string_list_to_paragraph(transformed_comment, comment_paragraph):
     return comment_paragraph
 
 
-def string_list_to_string(string_list, list_as_string):
+def string_list_to_string(string_list, list_as_string, end_append=False):
+    temp = None
+    if end_append:
+        temp = list_as_string.copy()
+        list_as_string = ''
     for string_item in string_list:
         list_as_string += string_item
+    if end_append:
+        list_as_string += temp
     return list_as_string
 
 
@@ -79,28 +85,48 @@ def remove_urls(text):
     return text_without_urls
 
 
+def tokenize(sentence):
+    return nltk.word_tokenize(sentence)
+
+
+def process_string(input_string):
+    processed = []
+    for word in tokenize(input_string):
+        if (
+                not PUNCTUATION.__contains__(word.lower()) and
+                not STOP_WORDS.__contains__(word.lower())
+        ):
+            word_lower = word.lower()
+            stemmed_word = STEMMER.stem(word_lower)
+            processed.append(stemmed_word)
+    return processed
+
+
 def split_words(sentence):
     """
     Splits each comment from list of comments into words
     :param sentence: sentence string (punctuation not necessary)
     :return: list of lists of comments split into words
     """
-    processed_words = []
+    preprocessed_words = []
     if sentence.__contains__('http'):
         sentence = remove_urls(sentence)
-    text_split_word = nltk.word_tokenize(sentence)
-    stemmer = nltk.PorterStemmer()
+    text_split_word = tokenize(sentence)
     for word in text_split_word:
-        if word.lower() not in PUNCTUATION and word.lower() not in STOP_WORDS and clean(word, no_emoji=True) != '':
+        if (
+                not PUNCTUATION.__contains__(word.lower()) and
+                not STOP_WORDS.__contains__(word.lower()) and
+                clean(word, no_emoji=True) != ''
+        ):
             word_lower = word.lower()
-            stemmed_word = stemmer.stem(word_lower)
-            processed_words.append(stemmed_word)
+            stemmed_word = STEMMER.stem(word_lower)
+            preprocessed_words.append(stemmed_word)
             if stemmed_word not in POST_DICT.keys():
                 POST_DICT.update({stemmed_word: word_lower})
-                WORD_FREQ.update({stemmed_word: 1})
+                POST_FREQ.update({stemmed_word: 1})
             elif stemmed_word in POST_DICT.keys():
-                WORD_FREQ[stemmed_word] = WORD_FREQ.get(stemmed_word) + 1
-    return processed_words
+                POST_FREQ[stemmed_word] = POST_FREQ.get(stemmed_word) + 1
+    return preprocessed_words
 
 
 def split_sentence(comment_body):
