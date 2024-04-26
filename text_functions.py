@@ -68,7 +68,7 @@ def string_list_to_paragraph(transformed_comment, comment_paragraph):
 def string_list_to_string(string_list, list_as_string, end_append=False):
     temp = None
     if end_append:
-        temp = list_as_string.copy()
+        temp = list_as_string
         list_as_string = ''
     for string_item in string_list:
         list_as_string += string_item

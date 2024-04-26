@@ -28,12 +28,10 @@ print('Loading BART Tokenizer ...')
 TOKENIZER = AutoTokenizer.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
 # TOKENIZER = BartTokenizer.from_pretrained("sshleifer/distilbart-cnn-12-6")
 print('Loading BART Model ...')
-MODEL = AutoModelForSeq2SeqLM.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
-
-
 # https://huggingface.co/Mr-Vicky-01/Bart-Finetuned-conversational-summarization
-# MODEL = BartForConditionalGeneration.from_pretrained("sshleifer/distilbart-cnn-12-6")
+MODEL = AutoModelForSeq2SeqLM.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
 # https://huggingface.co/sshleifer/distilbart-cnn-12-6
+# MODEL = BartForConditionalGeneration.from_pretrained("sshleifer/distilbart-cnn-12-6")
 
 
 def initialize_praw():
@@ -298,28 +296,12 @@ def top_word_percentage(top_words):
     return len(thread_top_words) / len(top_words)
 
 
-def data_pie_chart(filtered_thread_nums, all_thread_comment_sizes, reddit_post):
-    comment_sum = sum(all_thread_comment_sizes)
-    labels = [
-        'Main Thread #{0}:\n{1:.2f}%, {2} comments'.format(num, 100 * size / comment_sum, size)
-        for num, size in zip(filtered_thread_nums, all_thread_comment_sizes)
-    ]
-    pie = plt.pie(all_thread_comment_sizes)
-    legend = plt.legend(pie[0], labels, bbox_to_anchor=(1.15, 0.5), loc="center right", fontsize=10,
-                        bbox_transform=plt.gcf().transFigure)
-    plt.title('Filtered Main Comment Threads,\n'
-              'Contributions to the Dataset ({} total comments)'.format(comment_sum))
-    plt.savefig(os.getcwd() + '/code_output/Post {}, Pie Chart.png'.format(reddit_post.id),
-                bbox_extra_artists=(legend,),
-                bbox_inches='tight')
-
-
 def upvote_stats_and_boxplot(reddit_post, reddit_thread):
     print('Filtering main comments by upvotes ...')
     upvote_list = []
     for index, main_comment in enumerate(reddit_thread):
         upvotes = tfx.COMMENT_UPVOTE_DICT[main_comment[0]]
-        if tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= ANTI_SKEW_UPV0TE_FILTER:
+        if tfx.COMMENT_UPVOTE_DICT[main_comment[0]] > ANTI_SKEW_UPV0TE_FILTER:
             upvote_list.append(upvotes)
     # mean = sum(upvote_list)/len(upvote_list)
     # variance = sum([((x - mean) ** 2) for x in upvote_list]) / len(upvote_list)
@@ -381,7 +363,7 @@ def create_plot_embeddings(w2v_model, index, reddit_post, num_comments):
         'Top {} Words in Main Comment Thread #{}\n'
         '({} total comments in thread)'.format(
             vector_count,
-            index + 1,
+            index,
             num_comments,
         )
     )
@@ -397,11 +379,27 @@ def create_plot_embeddings(w2v_model, index, reddit_post, num_comments):
         fontsize=12
     )
     plt.savefig(
-        os.getcwd() + '/code_output/Post {}, 3D Embedding Plot Main Thread {}.png'.format(reddit_post.id, index + 1),
+        os.getcwd() + '/code_output/Post {}, 3D Embedding Plot Main Thread {}.png'.format(reddit_post.id, index),
         bbox_extra_artists=(legend, caption),
         bbox_inches='tight'
     )
     plt.close()
+
+
+def data_pie_chart(filtered_thread_nums, all_thread_comment_sizes, reddit_post):
+    comment_sum = sum(all_thread_comment_sizes)
+    labels = [
+        'Main Thread #{0}:\n{1:.2f}%, {2} comments'.format(num, 100 * size / comment_sum, size)
+        for num, size in zip(filtered_thread_nums, all_thread_comment_sizes)
+    ]
+    pie = plt.pie(all_thread_comment_sizes)
+    legend = plt.legend(pie[0], labels, bbox_to_anchor=(1.15, 0.5), loc="center right", fontsize=10,
+                        bbox_transform=plt.gcf().transFigure)
+    plt.title('Filtered Main Comment Threads,\n'
+              'Contributions to the Dataset ({} total comments)'.format(comment_sum))
+    plt.savefig(os.getcwd() + '/code_output/Post {}, Pie Chart.png'.format(reddit_post.id),
+                bbox_extra_artists=(legend,),
+                bbox_inches='tight')
 
 
 def generate_summary(input_string):
