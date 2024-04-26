@@ -5,24 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b394f611-0d5a-4f2b-ae36-cf3ee96f7c8d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 6.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 8.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, Pie Chart.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkl_files/b6hy7e.pkl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/8cibi0.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/b6hy7e.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 1.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 2.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 3.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 3.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 4.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 4.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 5.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 5.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, 3D Embedding Plot Main Thread 7.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/code_output/Post b6hy7e, upvotes boxplot.png" beforeDir="false" afterPath="$PROJECT_DIR$/code_output/Post b6hy7e, upvotes boxplot.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forum_summarize.py" beforeDir="false" afterPath="$PROJECT_DIR$/forum_summarize.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k1ofcu.pkl" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/praw_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/praw_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/text_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/text_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

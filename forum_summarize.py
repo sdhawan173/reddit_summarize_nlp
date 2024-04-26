@@ -50,13 +50,9 @@ def evaluate(summary_string, title, body=None):
         )
 
 
-# two experiements
-# 1 - all data sequentially into model, let model summarize conversation
-#     - sort main comments by top, output short sentence or sentences
-# 2 - how to organize conversation
-
-reddit_post, reddit_thread = pfx.create_dataset(science[2])
 pfx.COMMENT_DEPTH_FILTER = 5
+pfx.ANTI_SKEW_UPV0TE_FILTER = 5
+reddit_post, reddit_thread = pfx.create_dataset(science[2])
 pfx.comment_structure_manipulation(reddit_post, reddit_thread)
 entire_post_string = tfx.string_list_to_string(pfx.FILT_ALL_THREADS_PARAGRAPHS, reddit_post.title)
 entire_post_string += reddit_post.title

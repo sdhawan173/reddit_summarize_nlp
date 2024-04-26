@@ -18,11 +18,12 @@ THREAD_PARAGRAPH = []  # list of all unstemmed comments in thread converted to a
 FILT_ALL_THREADS_PARAGRAPHS = []  # list of lists of all unstemmed thread paragraphs converted to a string
 MAIN_THREAD_COMMENTS_STEMMED = []  # list of all comments in thread converted to string, each comment separated by '. '
 FILT_ALL_COMMENTS_STEMMED = []  # list of lists of all thread paragraphs converted to a string
-global COMMENT_DEPTH_FILTER
 MAIN_THREAD_DEPTHS = []
+global COMMENT_DEPTH_FILTER
 global TOP_POST_WORDS_100
 global PERCENT_TOP_WORDS
 global UPVOTE_CRITERION
+global ANTI_SKEW_UPV0TE_FILTER
 print('Loading BART Tokenizer ...')
 TOKENIZER = AutoTokenizer.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
 # TOKENIZER = BartTokenizer.from_pretrained("sshleifer/distilbart-cnn-12-6")
@@ -194,7 +195,8 @@ def parse_comment_structure(thread, marker='|', comment_level=1, verbose=None):
                 parse_comment_structure(item, marker=marker + '|', comment_level=len(marker) + 1, verbose=verbose)
 
 
-def comment_structure_manipulation(reddit_post, reddit_thread):
+def comment_structure_manipulation(reddit_post, reddit_thread, w2v_vector_size=100, w2v_window=5, w2v_min_count=1,
+                                   w2v_sg=0, w2v_epochs=30):
     global TOP_POST_WORDS_100
     global MAIN_THREAD_DEPTHS
     global UPVOTE_CRITERION
@@ -225,7 +227,7 @@ def comment_structure_manipulation(reddit_post, reddit_thread):
         # Calculate percentage of top words in entire post for words in current main thread
         PERCENT_TOP_WORDS = top_word_percentage(TOP_POST_WORDS_100)
         if (
-                len(MAIN_THREAD_DEPTHS) > 5 and
+                len(MAIN_THREAD_DEPTHS) > COMMENT_DEPTH_FILTER and
                 PERCENT_TOP_WORDS > 0.10 and
                 tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= UPVOTE_CRITERION
         ):
@@ -250,11 +252,11 @@ def comment_structure_manipulation(reddit_post, reddit_thread):
             w2v_models.append(
                 Word2Vec(
                     MAIN_THREAD_COMMENTS_STEMMED,
-                    vector_size=100,
-                    window=5,
-                    min_count=1,
-                    sg=0,
-                    epochs=30
+                    vector_size=w2v_vector_size,
+                    window=w2v_window,
+                    min_count=w2v_min_count,
+                    sg=w2v_sg,
+                    epochs=w2v_epochs
                 )
             )
 
@@ -317,7 +319,7 @@ def upvote_stats_and_boxplot(reddit_post, reddit_thread):
     upvote_list = []
     for index, main_comment in enumerate(reddit_thread):
         upvotes = tfx.COMMENT_UPVOTE_DICT[main_comment[0]]
-        if tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= 5:
+        if tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= ANTI_SKEW_UPV0TE_FILTER:
             upvote_list.append(upvotes)
     # mean = sum(upvote_list)/len(upvote_list)
     # variance = sum([((x - mean) ** 2) for x in upvote_list]) / len(upvote_list)
