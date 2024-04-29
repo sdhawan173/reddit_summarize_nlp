@@ -7,11 +7,11 @@ import praw
 # import torch
 from operator import itemgetter
 from gensim.models import Word2Vec
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 # from transformers import BartTokenizer, BartForConditionalGeneration
 # from transformers import pipeline
+import matplotlib.pyplot as plt
 import text_functions as tfx
 
 THREAD_PARAGRAPH = []  # list of all unstemmed comments in thread converted to a string, each comment separated by '. '
@@ -22,7 +22,7 @@ MAIN_THREAD_DEPTHS = []
 global COMMENT_DEPTH_FILTER
 global TOP_POST_WORDS_100
 global PERCENT_TOP_WORDS
-global UPVOTE_CRITERION
+global MEDIAN_UPVOTES
 global ANTI_SKEW_UPV0TE_FILTER
 print('Loading BART Tokenizer ...')
 TOKENIZER = AutoTokenizer.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
@@ -30,6 +30,8 @@ TOKENIZER = AutoTokenizer.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversati
 print('Loading BART Model ...')
 # https://huggingface.co/Mr-Vicky-01/Bart-Finetuned-conversational-summarization
 MODEL = AutoModelForSeq2SeqLM.from_pretrained("Mr-Vicky-01/Bart-Finetuned-conversational-summarization")
+
+
 # https://huggingface.co/sshleifer/distilbart-cnn-12-6
 # MODEL = BartForConditionalGeneration.from_pretrained("sshleifer/distilbart-cnn-12-6")
 
@@ -194,22 +196,24 @@ def parse_comment_structure(thread, marker='|', comment_level=1, verbose=None):
 
 
 def comment_structure_manipulation(reddit_post, reddit_thread, w2v_vector_size=100, w2v_window=5, w2v_min_count=1,
-                                   w2v_sg=0, w2v_epochs=30):
+                                   w2v_sg=0, w2v_epochs=30, embeddings=True):
     global TOP_POST_WORDS_100
     global MAIN_THREAD_DEPTHS
-    global UPVOTE_CRITERION
+    global MEDIAN_UPVOTES
     global PERCENT_TOP_WORDS
 
+    print('Begin manipulating loaded data ...')
     all_thread_comment_sizes = []
     main_thread_paragraph_list = []
     filtered_thread_nums = []
     w2v_models = []
+    print('     Filtering main comments by upvotes ...')
     median_upvotes = upvote_stats_and_boxplot(reddit_post, reddit_thread)
-    UPVOTE_CRITERION = median_upvotes
-    print('The upvote cutoff is the median number\n'
-          'of upvotes of all main comments: {}\n'.format(median_upvotes))
-    print('Parsing comment structure ...')
-    print('     Analyzing filtered dataset ...')
+    MEDIAN_UPVOTES = median_upvotes
+    print('          Median number of upvotes\n'
+          '          of all main comments: {}\n'.format(median_upvotes))
+    print('     Parsing comment structure ...')
+    print('          Analyzing filtered dataset ({}) Main Threads...'.format(len(reddit_thread)))
     for index, main_comment in enumerate(reddit_thread):
         # Clear temp global lists
         THREAD_PARAGRAPH.clear()
@@ -221,13 +225,12 @@ def comment_structure_manipulation(reddit_post, reddit_thread, w2v_vector_size=1
 
         # Recursive Parsing
         parse_comment_structure(main_comment, verbose=False)
-
         # Calculate percentage of top words in entire post for words in current main thread
         PERCENT_TOP_WORDS = top_word_percentage(TOP_POST_WORDS_100)
         if (
-                len(MAIN_THREAD_DEPTHS) > COMMENT_DEPTH_FILTER and
-                PERCENT_TOP_WORDS > 0.10 and
-                tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= UPVOTE_CRITERION
+                tfx.COMMENT_UPVOTE_DICT[main_comment[0]] >= MEDIAN_UPVOTES and
+                len(MAIN_THREAD_DEPTHS) >= 10 and
+                PERCENT_TOP_WORDS >= 0.25
         ):
             print(
                 '     Main Thread #{}, id {}:\n'
@@ -277,9 +280,9 @@ def comment_structure_manipulation(reddit_post, reddit_thread, w2v_vector_size=1
                 main_thread_string = tfx.string_list_to_string(thread_paragraph_string, main_thread_string)
             FILT_ALL_THREADS_PARAGRAPHS.append(main_thread_string)
             all_thread_comment_sizes.append(len(MAIN_THREAD_DEPTHS))
-
-    for model, index in zip(w2v_models, filtered_thread_nums):
-        create_plot_embeddings(model, index, reddit_post, len(MAIN_THREAD_DEPTHS))
+    if embeddings:
+        for model, index, comment_num in zip(w2v_models, filtered_thread_nums, all_thread_comment_sizes):
+            create_plot_embeddings(model, index, reddit_post, comment_num)
     data_pie_chart(filtered_thread_nums, all_thread_comment_sizes, reddit_post)
     print('Done Parsing!')
 
@@ -297,7 +300,6 @@ def top_word_percentage(top_words):
 
 
 def upvote_stats_and_boxplot(reddit_post, reddit_thread):
-    print('Filtering main comments by upvotes ...')
     upvote_list = []
     for index, main_comment in enumerate(reddit_thread):
         upvotes = tfx.COMMENT_UPVOTE_DICT[main_comment[0]]
@@ -322,12 +324,20 @@ def upvote_stats_and_boxplot(reddit_post, reddit_thread):
     post_title = '\"{}\"'.format(post_title)
     if len(reddit_post.title) > 25:
         post_title = '\"{} ...\"'.format(post_title[:25])
-    plt.legend(["Outliers: " + ", ".join(map(str, outliers))], loc="upper right")
+    legend = plt.legend(
+        ["Outliers:\n" + ", \n".join(map(str, outliers))],
+        loc="upper right",
+        bbox_to_anchor=(1.25, 1.0)
+    )
     plt.title('Boxplot of Upvotes for Reddit Post:\n{}'.format(post_title))
     plt.xlabel('Upvotes (upvotes greater than 5)')
     plt.yticks([])
     save_name = '/code_output/Post {}, upvotes boxplot.png'.format(reddit_post.id)
-    plt.savefig(os.getcwd() + save_name)
+    plt.savefig(
+        os.getcwd() + save_name,
+        bbox_extra_artists=(legend,),
+        bbox_inches='tight'
+    )
     plt.close()
     return median_upvotes
 
@@ -395,6 +405,9 @@ def data_pie_chart(filtered_thread_nums, all_thread_comment_sizes, reddit_post):
     pie = plt.pie(all_thread_comment_sizes)
     legend = plt.legend(pie[0], labels, bbox_to_anchor=(1.15, 0.5), loc="center right", fontsize=10,
                         bbox_transform=plt.gcf().transFigure)
+    if len(labels) > 5:
+        legend = plt.legend(pie[0], labels, bbox_to_anchor=(1.15, 0), loc="upper right", fontsize=10,
+                            bbox_transform=plt.gcf().transFigure, ncols=4)
     plt.title('Filtered Main Comment Threads,\n'
               'Contributions to the Dataset ({} total comments)'.format(comment_sum))
     plt.savefig(os.getcwd() + '/code_output/Post {}, Pie Chart.png'.format(reddit_post.id),

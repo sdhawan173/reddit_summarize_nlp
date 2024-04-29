@@ -1,3 +1,4 @@
+from rouge import Rouge
 from dataset_links import askreddit
 from dataset_links import science
 import praw_functions as pfx
@@ -28,38 +29,46 @@ def evaluate(summary_string, title, body=None):
         )
     )
     recall = overlap_with_title / len(processed_title)
-    precision = overlap_with_title / (no_overlap_title + overlap_with_title)
-    if not body:
-        print(
-            'RECALL:{}/{}, {}\n'
-            '     Number of overlapping words between generated summary and reference divided by\n'
-            '     Total number of words in reference summary'.format(
-                overlap_with_title,
-                len(processed_title),
-                precision
-            )
+    precision = overlap_with_title / len(processed_summary)
+    print(
+        'RECALL:{}/{}, {}\n'
+        '     Number of overlapping words between generated summary and reference divided by\n'
+        '     Total number of words in reference summary'.format(
+            overlap_with_title,
+            len(processed_title),
+            recall
         )
-        print(
-            'PRECISION:{}/{}, {}\n'
-            '     Number of overlapping words between generated summary and reference divided by\n'
-            '     Total number of words in generated summary'.format(
-                overlap_with_title,
-                len(processed_title),
-                precision
-            )
+    )
+    print(
+        'PRECISION:{}/{}, {}\n'
+        '     Number of overlapping words between generated summary and reference divided by\n'
+        '     Total number of words in generated summary'.format(
+            overlap_with_title,
+            len(processed_summary),
+            precision
         )
+    )
+    if precision+recall != 0:
+        print('F1: {}'.format((2*precision*recall)/(precision+recall)))
 
 
-pfx.COMMENT_DEPTH_FILTER = 5
-pfx.ANTI_SKEW_UPV0TE_FILTER = 5
-reddit_post, reddit_thread = pfx.create_dataset(science[2])
-pfx.comment_structure_manipulation(reddit_post, reddit_thread)
-entire_post_string = tfx.string_list_to_string(pfx.FILT_ALL_THREADS_PARAGRAPHS, reddit_post.title, end_append=True)
-entire_post_string += reddit_post.title
+def calculate_rouge(hypotheses, references):
+    rouge = Rouge()
+    scores = rouge.get_scores(hypotheses, references, avg=True)
+    return scores
+
+
+pfx.COMMENT_DEPTH_FILTER = 4
+pfx.ANTI_SKEW_UPV0TE_FILTER = 15
+reddit_post, reddit_thread = pfx.create_dataset(science[3])
+pfx.comment_structure_manipulation(reddit_post, reddit_thread, embeddings=False)
+entire_post_string = tfx.string_list_to_string(pfx.FILT_ALL_THREADS_PARAGRAPHS, '', end_append=False)
 entire_summary = pfx.generate_summary(entire_post_string)
-evaluate(entire_summary, reddit_post.title)
+print('\nPost Title\n{}'.format(reddit_post.title))
 print('\nEntire Summary\n(Summary of all filtered data concatenated to one string)\n{}'.format(entire_summary))
-input()
+evaluate(entire_summary, reddit_post.title)
+rouge_scores = calculate_rouge(entire_summary, reddit_post.title)
+print(rouge_scores)
 
 paragraph_summaries = []
 for index, paragraph in enumerate(pfx.FILT_ALL_THREADS_PARAGRAPHS):
